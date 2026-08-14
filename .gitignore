@@ -1,0 +1,25 @@
+# Compiled Java files
+*.class
+*.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Build directories
+bin/
+out/
+target/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project files
+*.log
+data/*
+!data/.gitkeep
+extracted_docx/

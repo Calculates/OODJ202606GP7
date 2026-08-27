@@ -113,6 +113,11 @@ chmod +x build.sh run.sh
 ./run.sh
 ```
 
+### macOS Application
+Install a JDK such as Eclipse Temurin from https://adoptium.net, then double-click `APU Medical Centre HMS.app` in Finder. The app builds the project automatically when the JDK is installed.
+
+If macOS blocks the first launch, Control-click the app, choose **Open**, and confirm **Open**.
+
 You can also run the macOS/Linux commands manually:
 ```bash
 mkdir -p bin

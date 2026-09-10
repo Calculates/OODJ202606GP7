@@ -72,6 +72,22 @@ public abstract class User implements Serializable {
     public String getRole() {
         return role;
     }
+
+    public PermissionLevel getPermission(SystemModule module) {
+        return PermissionMatrix.getPermission(role, module);
+    }
+
+    public boolean canRead(SystemModule module) {
+        return PermissionMatrix.canRead(role, module);
+    }
+
+    public boolean canWrite(SystemModule module) {
+        return PermissionMatrix.canWrite(role, module);
+    }
+
+    public boolean canCreateOrDelete(SystemModule module) {
+        return PermissionMatrix.canCreateOrDelete(role, module);
+    }
     
     public void setRole(String role) {
         this.role = role;

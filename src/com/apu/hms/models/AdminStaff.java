@@ -11,7 +11,7 @@ public class AdminStaff extends User {
     
     public AdminStaff(String userId, String name, String email, String phone, 
                       String password, String department, String accessLevel) {
-        super(userId, name, email, phone, password, "Admin");
+        super(userId, name, email, phone, password, "Admin Staff");
         this.department = department;
         this.accessLevel = accessLevel;
     }

@@ -1,5 +1,7 @@
 package com.apu.hms.views;
 
+import com.apu.hms.accounts.AccountStore;
+import com.apu.hms.controllers.LoginController;
 import java.awt.*;
 import javax.swing.*;
 
@@ -10,13 +12,14 @@ import javax.swing.*;
 public class LoginView extends JPanel {
     private static final long serialVersionUID = 1L;
     
-    private JFrame mainFrame;
+    private final JFrame mainFrame;
+    private final LoginController loginController;
     private JTextField userIdField;
     private JPasswordField passwordField;
-    private JComboBox<String> roleCombo;
     
     public LoginView(JFrame mainFrame) {
         this.mainFrame = mainFrame;
+        this.loginController = new LoginController();
         initializeComponents();
     }
     
@@ -48,11 +51,6 @@ public class LoginView extends JPanel {
         loginBox.setBackground(Color.WHITE);
         loginBox.setPreferredSize(new Dimension(400, 250));
         
-        // User Role
-        loginBox.add(new JLabel("Select Role:"));
-        roleCombo = new JComboBox<>(new String[]{"Admin", "Medical Manager", "Doctor", "Patient"});
-        loginBox.add(roleCombo);
-        
         // User ID
         loginBox.add(new JLabel("User ID:"));
         userIdField = new JTextField();
@@ -66,17 +64,24 @@ public class LoginView extends JPanel {
         // Buttons
         JButton loginButton = new JButton("Login");
         loginButton.setBackground(new Color(0, 102, 204));
-        loginButton.setForeground(Color.WHITE);
+        loginButton.setForeground(Color.BLACK);
         loginButton.setFont(new Font("Arial", Font.BOLD, 12));
         loginButton.addActionListener(e -> handleLogin());
         loginBox.add(loginButton);
         
         JButton registerButton = new JButton("Register");
         registerButton.setBackground(new Color(0, 153, 76));
-        registerButton.setForeground(Color.WHITE);
+        registerButton.setForeground(Color.BLACK);
         registerButton.setFont(new Font("Arial", Font.BOLD, 12));
         registerButton.addActionListener(e -> handleRegister());
         loginBox.add(registerButton);
+
+        loginBox.add(new JLabel());
+        JButton quitButton = new JButton("Quit");
+        quitButton.setForeground(Color.BLACK);
+        quitButton.setFont(new Font("Arial", Font.BOLD, 12));
+        quitButton.addActionListener(e -> System.exit(0));
+        loginBox.add(quitButton);
         
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -86,9 +91,8 @@ public class LoginView extends JPanel {
     }
     
     private void handleLogin() {
-        String userId = userIdField.getText();
+        String userId = userIdField.getText().trim();
         String password = new String(passwordField.getPassword());
-        String role = (String) roleCombo.getSelectedItem();
         
         if (userId.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter User ID and Password", 
@@ -96,12 +100,51 @@ public class LoginView extends JPanel {
             return;
         }
         
-        JOptionPane.showMessageDialog(this, "Login feature to be implemented.\nUser: " + userId + "\nRole: " + role,
-            "Login", JOptionPane.INFORMATION_MESSAGE);
+        AccountStore.AccountRecord account = loginController.login(userId, password);
+        if (account == null) {
+            JOptionPane.showMessageDialog(this, "Invalid User ID or Password.",
+                "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        passwordField.setText("");
+        mainFrame.setContentPane(new DashboardView(mainFrame, account.getUserId(), account.getRole()));
+        mainFrame.revalidate();
+        mainFrame.repaint();
     }
     
     private void handleRegister() {
-        JOptionPane.showMessageDialog(this, "Registration feature to be implemented.",
-            "Register", JOptionPane.INFORMATION_MESSAGE);
+        JTextField newUserId = new JTextField();
+        JPasswordField newPassword = new JPasswordField();
+        JPasswordField confirmPassword = new JPasswordField();
+        JPanel form = new JPanel(new GridLayout(3, 2, 8, 8));
+        form.add(new JLabel("Patient User ID:"));
+        form.add(newUserId);
+        form.add(new JLabel("Password:"));
+        form.add(newPassword);
+        form.add(new JLabel("Confirm Password:"));
+        form.add(confirmPassword);
+
+        int result = JOptionPane.showConfirmDialog(this, form,
+            "Register Patient Account", JOptionPane.OK_CANCEL_OPTION);
+        if (result != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        String password = new String(newPassword.getPassword());
+        String confirmation = new String(confirmPassword.getPassword());
+        if (!password.equals(confirmation) || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Passwords do not match.",
+                "Registration Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (loginController.registerPatient(newUserId.getText(), password, confirmation)) {
+            JOptionPane.showMessageDialog(this, "Patient account created successfully.",
+                "Registration", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "User ID is empty or already exists.",
+                "Registration Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

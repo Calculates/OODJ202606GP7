@@ -100,25 +100,12 @@ OODJ202606/
 
 The application is platform-independent and works on Windows, macOS, and Linux. Java Swing is included with the JDK, so no additional GUI library is required.
 
-### Windows
-```bash
-build.bat
-run.bat
-```
-
-### macOS or Linux
-```bash
-chmod +x build.sh run.sh
-./build.sh
-./run.sh
-```
-
 ### macOS Application
 Install a JDK such as Eclipse Temurin from https://adoptium.net, then double-click `APU Medical Centre HMS.app` in Finder. The app builds the project automatically when the JDK is installed.
 
 If macOS blocks the first launch, Control-click the app, choose **Open**, and confirm **Open**.
 
-You can also run the macOS/Linux commands manually:
+You can also compile and run the application manually:
 ```bash
 mkdir -p bin
 find src -name '*.java' -print0 | xargs -0 javac -d bin -sourcepath src

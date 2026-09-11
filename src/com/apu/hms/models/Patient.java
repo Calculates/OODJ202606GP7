@@ -25,21 +25,6 @@ public class Patient extends User {
         this.prescriptions = new ArrayList<>();
     }
     
-    @Override
-    public void displayMenu() {
-        System.out.println("\n========== Patient Menu ==========");
-        System.out.println("1. Edit Personal Profile");
-        System.out.println("2. Browse Doctor Consultation Slots");
-        System.out.println("3. Book Appointment");
-        System.out.println("4. Reschedule Appointment");
-        System.out.println("5. Cancel Appointment");
-        System.out.println("6. View Medical History");
-        System.out.println("7. View Prescriptions");
-        System.out.println("8. Submit Ratings and Feedback");
-        System.out.println("9. Logout");
-        System.out.println("==================================");
-    }
-    
     public void addBooking(String booking) {
         bookings.add(booking);
     }

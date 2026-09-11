@@ -23,19 +23,6 @@ public class Doctor extends User {
         this.consultationSlots = new ArrayList<>();
     }
     
-    @Override
-    public void displayMenu() {
-        System.out.println("\n=========== Doctor Menu ===========");
-        System.out.println("1. Edit Personal Profile");
-        System.out.println("2. Log Patient Vital Signs");
-        System.out.println("3. Write Consultation Notes");
-        System.out.println("4. Issue Digital Prescriptions");
-        System.out.println("5. Request Lab Tests/X-rays");
-        System.out.println("6. View Patient History");
-        System.out.println("7. Logout");
-        System.out.println("===================================");
-    }
-    
     public void addConsultationSlot(String slot) {
         consultationSlots.add(slot);
     }

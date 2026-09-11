@@ -25,9 +25,6 @@ public abstract class User implements Serializable {
         this.role = role;
     }
     
-    // Abstract method to be implemented by subclasses
-    public abstract void displayMenu();
-    
     // Getters and Setters
     public String getUserId() {
         return userId;
@@ -99,7 +96,6 @@ public abstract class User implements Serializable {
                 "userId='" + userId + '\'' +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
                 ", role='" + role + '\'' +
                 '}';
     }

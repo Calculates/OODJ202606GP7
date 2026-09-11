@@ -52,6 +52,14 @@ public final class AccountStore {
         return addAccount(role, userId, password);
     }
 
+    public static List<AccountRecord> getAllAccounts() {
+        return new ArrayList<>(ACCOUNTS);
+    }
+
+    public static AccountRecord getAccount(String userId) {
+        return findByUserId(userId);
+    }
+
     public static List<AccountRecord> getAccountsByRole(String role) {
         List<AccountRecord> matches = new ArrayList<>();
         for (AccountRecord account : ACCOUNTS) {
@@ -60,6 +68,53 @@ public final class AccountStore {
             }
         }
         return matches;
+    }
+
+    public static boolean updateAccount(String currentUserId, String newRole, String newUserId, String newPassword) {
+        if (currentUserId == null || currentUserId.trim().isEmpty()) {
+            return false;
+        }
+        AccountRecord existing = findByUserId(currentUserId.trim());
+        if (existing == null) {
+            return false;
+        }
+        if (newRole == null || newRole.trim().isEmpty()) {
+            return false;
+        }
+
+        String finalUserId = (newUserId == null) ? existing.getUserId() : newUserId.trim();
+        if (finalUserId.isEmpty()) {
+            return false;
+        }
+
+        if (!existing.getUserId().equals(finalUserId) && findByUserId(finalUserId) != null) {
+            return false;
+        }
+
+        String finalPassword = (newPassword == null || newPassword.trim().isEmpty())
+                ? existing.getPassword()
+                : newPassword.trim();
+
+        ACCOUNTS.remove(existing);
+        ACCOUNTS.add(new AccountRecord(newRole.trim(), finalUserId, finalPassword));
+        return true;
+    }
+
+    public static boolean removeAccount(String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            return false;
+        }
+        AccountRecord existing = findByUserId(userId.trim());
+        if (existing == null) {
+            return false;
+        }
+
+        if ("Admin Staff".equals(existing.getRole())) {
+            return false;
+        }
+
+        ACCOUNTS.remove(existing);
+        return true;
     }
 
     public static void addAppointment(String patientId, String doctorId, LocalDateTime dateTime) {
@@ -114,7 +169,7 @@ public final class AccountStore {
             return userId;
         }
 
-        private String getPassword() {
+        public String getPassword() {
             return password;
         }
     }

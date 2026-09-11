@@ -21,4 +21,12 @@ public class LoginController {
     public boolean createStaffAccount(String role, String userId, String password) {
         return AccountStore.createStaffAccount(role, userId, password);
     }
+
+    public boolean updateAccount(String currentUserId, String newRole, String newUserId, String newPassword) {
+        return AccountStore.updateAccount(currentUserId, newRole, newUserId, newPassword);
+    }
+
+    public boolean removeAccount(String userId) {
+        return AccountStore.removeAccount(userId);
+    }
 }

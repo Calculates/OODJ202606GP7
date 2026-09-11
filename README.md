@@ -7,31 +7,17 @@ A comprehensive Object-Oriented Java application for managing healthcare operati
 
 ```
 OODJ202606/
+├── main.java                 (VS Code entry point)
 ├── src/
 │   └── com/apu/hms/
-│       ├── HospitalManagementSystem.java (Main entry point)
-│       ├── models/           (Data models)
-│       │   ├── User.java (Abstract base class)
-│       │   ├── AdminStaff.java
-│       │   ├── MedicalManager.java
-│       │   ├── Doctor.java
-│       │   ├── Patient.java
-│       │   ├── Department.java
-│       │   ├── Ward.java
-│       │   ├── MedicalAssessment.java
-│       │   ├── Appointment.java
-│       │   ├── Prescription.java
-│       │   └── Billing.java
-│       ├── views/            (GUI components using Swing)
-│       │   └── LoginView.java
-│       ├── controllers/      (Business logic - to be implemented)
-│       ├── services/         (Service layer - to be implemented)
-│       └── utils/            (Utility classes)
-│           ├── FileManager.java (File I/O operations)
-│           └── ValidationUtil.java (Input validation)
-├── data/                     (Data storage - text files)
-├── lib/                      (External libraries - if needed)
-└── README.md
+│       ├── HospitalManagementSystem.java
+│       ├── accounts/
+│       ├── controllers/
+│       ├── models/
+│       ├── utils/
+│       └── views/
+├── README.md
+└── bin/                     (generated after compilation)
 
 ```
 
@@ -92,20 +78,21 @@ OODJ202606/
 - View prescriptions
 - Submit ratings and feedback
 
-## How to Compile & Run
+## How to Run in VS Code
 
 ### Prerequisites
-- Java Development Kit (JDK) 8 or higher
-- Command line terminal
+- Java Development Kit (JDK) installed
+- VS Code with the Java extension pack
 
-The application is platform-independent and works on Windows, macOS, and Linux. Java Swing is included with the JDK, so no additional GUI library is required.
+This project is designed to run directly from the source files in VS Code. No additional launcher script is required.
 
-### macOS Application
-Install a JDK such as Eclipse Temurin from https://adoptium.net, then double-click `APU Medical Centre HMS.app` in Finder. The app builds the project automatically when the JDK is installed.
+### Run the application
+1. Open the project in VS Code.
+2. Open [main.java](main.java).
+3. Click the Run Java / Start Debugging button in the editor.
+4. The application will launch from the `main` method and open the login screen.
 
-If macOS blocks the first launch, Control-click the app, choose **Open**, and confirm **Open**.
-
-You can also compile and run the application manually:
+### Manual compilation (optional)
 ```bash
 mkdir -p bin
 find src -name '*.java' -print0 | xargs -0 javac -d bin -sourcepath src
@@ -114,9 +101,9 @@ java -cp bin com.apu.hms.HospitalManagementSystem
 
 ## File Management
 
-- **Data Storage**: All data is stored in text files in the `data/` directory
-- **File Formats**: Java object serialization (.ser files)
-- **File Manager**: Utility class handles all file operations
+- **Data Storage**: Runtime application state is kept in memory and Java object models within the source code.
+- **No extra launcher scripts**: The project is intended to run directly from VS Code using [main.java](main.java).
+- **File Manager**: Utility classes are kept within the Java source structure when needed.
 
 ## Validation
 

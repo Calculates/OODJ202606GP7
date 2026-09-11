@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class DashboardView extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -45,7 +46,7 @@ public class DashboardView extends JPanel {
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
 
-        JLabel welcomeLabel = new JLabel("Welcome " + userId + " " + role);
+        JLabel welcomeLabel = new JLabel("Welcome " + role + " " + userId);
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 18));
         contentPanel.add(welcomeLabel, BorderLayout.NORTH);
 
@@ -90,7 +91,6 @@ public class DashboardView extends JPanel {
             case "Admin Staff":
                 return new String[]{
                     "Manage user accounts",
-                    "Create Staff Account",
                     "Assign doctors to medical managers",
                     "Manage hospital rooms, wards, labs and imaging facilities",
                     "Configure consultation rates and insurance networks",
@@ -148,8 +148,8 @@ public class DashboardView extends JPanel {
             return;
         }
 
-        if (selectedFunction.equals("Create Staff Account")) {
-            createStaffAccount();
+        if (selectedFunction.equals("Manage user accounts")) {
+            manageUserAccounts();
         } else if (selectedFunction.equals("Edit personal profile")) {
             editProfile();
         } else if (selectedFunction.contains("Book, reschedule")) {
@@ -312,6 +312,170 @@ public class DashboardView extends JPanel {
 
     private void showManagerInformation(String title, String message) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void manageUserAccounts() {
+        DefaultTableModel model = new DefaultTableModel(
+                new Object[]{"Role", "User ID", "Password"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        boolean[] showPasswords = {false};
+        Runnable refreshTable = () -> {
+            model.setRowCount(0);
+            for (AccountStore.AccountRecord account : AccountStore.getAllAccounts()) {
+                String passwordValue = showPasswords[0] ? account.getPassword() : "********";
+                model.addRow(new Object[]{account.getRole(), account.getUserId(), passwordValue});
+            }
+        };
+        refreshTable.run();
+
+        JTable table = new JTable(model);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setRowHeight(28);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+
+        JButton editButton = new JButton("Edit");
+        JButton removeButton = new JButton("Remove");
+        JButton createButton = new JButton("Create Staff Account");
+        JButton showPasswordsButton = new JButton("Show All Passwords");
+        JButton closeButton = new JButton("Back");
+
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                String selectedUserId = (String) model.getValueAt(selectedRow, 1);
+                AccountStore.AccountRecord selected = AccountStore.getAccount(selectedUserId);
+                boolean isAdmin = selected != null && "Admin Staff".equals(selected.getRole());
+                removeButton.setEnabled(!isAdmin);
+                removeButton.setToolTipText(isAdmin ? "Admin account cannot be removed" : "Remove selected account");
+            } else {
+                removeButton.setEnabled(false);
+                removeButton.setToolTipText("Select an account first");
+            }
+        });
+
+        createButton.addActionListener(e -> createStaffAccount());
+
+        showPasswordsButton.addActionListener(e -> {
+            showPasswords[0] = !showPasswords[0];
+            showPasswordsButton.setText(showPasswords[0] ? "Hide Passwords" : "Show All Passwords");
+            refreshTable.run();
+        });
+
+        editButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow < 0) {
+                JOptionPane.showMessageDialog(this, "Select an account to edit.",
+                        "No Account Selected", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String selectedUserId = (String) model.getValueAt(selectedRow, 1);
+            AccountStore.AccountRecord record = AccountStore.getAccount(selectedUserId);
+            if (record == null) {
+                return;
+            }
+
+            JComboBox<String> roleSelector = new JComboBox<>(new String[]{
+                    "Admin Staff", "Medical Manager", "Doctor", "Patient"});
+            roleSelector.setSelectedItem(record.getRole());
+
+            JTextField userIdField = new JTextField(record.getUserId());
+            JPasswordField passwordField = new JPasswordField();
+            passwordField.setText("");
+
+            JPanel form = new JPanel(new GridLayout(3, 2, 8, 8));
+            form.add(new JLabel("Role:"));
+            form.add(roleSelector);
+            form.add(new JLabel("User ID:"));
+            form.add(userIdField);
+            form.add(new JLabel("New Password:"));
+            form.add(passwordField);
+
+            int result = JOptionPane.showConfirmDialog(this, form,
+                    "Edit Account", JOptionPane.OK_CANCEL_OPTION);
+            if (result != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            boolean updated = loginController.updateAccount(
+                    record.getUserId(),
+                    (String) roleSelector.getSelectedItem(),
+                    userIdField.getText(),
+                    new String(passwordField.getPassword()));
+
+            if (updated) {
+                JOptionPane.showMessageDialog(this, "Account updated successfully.",
+                        "Update Successful", JOptionPane.INFORMATION_MESSAGE);
+                manageUserAccounts();
+            } else {
+                JOptionPane.showMessageDialog(this, "That user ID is already in use or the data is invalid.",
+                        "Update Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        removeButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow < 0) {
+                JOptionPane.showMessageDialog(this, "Select an account to remove.",
+                        "No Account Selected", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String selectedUserId = (String) model.getValueAt(selectedRow, 1);
+            AccountStore.AccountRecord selected = AccountStore.getAccount(selectedUserId);
+            if (selected != null && "Admin Staff".equals(selected.getRole())) {
+                JOptionPane.showMessageDialog(this, "Admin account cannot be removed.",
+                        "Removal Restricted", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Remove account '" + selectedUserId + "'?",
+                    "Confirm Removal", JOptionPane.YES_NO_OPTION);
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            boolean removed = loginController.removeAccount(selectedUserId);
+            if (removed) {
+                JOptionPane.showMessageDialog(this, "Account removed successfully.",
+                        "Removal Successful", JOptionPane.INFORMATION_MESSAGE);
+                manageUserAccounts();
+            } else {
+                JOptionPane.showMessageDialog(this, "This account cannot be removed.",
+                        "Removal Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        closeButton.addActionListener(e -> {
+            mainFrame.setContentPane(new DashboardView(mainFrame, userId, role));
+            mainFrame.revalidate();
+            mainFrame.repaint();
+        });
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(editButton);
+        buttonPanel.add(removeButton);
+        buttonPanel.add(createButton);
+        buttonPanel.add(showPasswordsButton);
+        buttonPanel.add(closeButton);
+
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        mainFrame.setContentPane(panel);
+        mainFrame.revalidate();
+        mainFrame.repaint();
     }
 
     private void createStaffAccount() {

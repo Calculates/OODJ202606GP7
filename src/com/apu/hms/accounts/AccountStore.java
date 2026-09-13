@@ -33,15 +33,14 @@ public final class AccountStore {
     }
 
     public static boolean registerPatient(String userId, String password) {
-        if (userId == null || userId.trim().isEmpty()
-                || password == null || password.trim().isEmpty()
-                || findByUserId(userId) != null) {
+        if (!isValidAccount(userId, password) || findByUserId(userId) != null) {
             return false;
         }
-        if (!PatientAccount.addAccount(userId.trim(), password)) {
+        String cleanUserId = userId.trim();
+        if (!PatientAccount.addAccount(cleanUserId, password)) {
             return false;
         }
-        ACCOUNTS.add(new AccountRecord(PatientAccount.ROLE, userId.trim(), password));
+        ACCOUNTS.add(new AccountRecord(PatientAccount.ROLE, cleanUserId, password));
         return true;
     }
 
@@ -132,13 +131,16 @@ public final class AccountStore {
     }
 
     private static boolean addAccount(String role, String userId, String password) {
-        if (userId == null || userId.trim().isEmpty()
-                || password == null || password.trim().isEmpty()
-                || findByUserId(userId) != null) {
+        if (!isValidAccount(userId, password) || findByUserId(userId) != null) {
             return false;
         }
         ACCOUNTS.add(new AccountRecord(role, userId.trim(), password));
         return true;
+    }
+
+    private static boolean isValidAccount(String userId, String password) {
+        return userId != null && !userId.trim().isEmpty()
+                && password != null && !password.trim().isEmpty();
     }
 
     private static AccountRecord findByUserId(String userId) {

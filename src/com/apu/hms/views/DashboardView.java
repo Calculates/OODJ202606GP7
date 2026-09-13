@@ -2,7 +2,6 @@ package com.apu.hms.views;
 
 import com.apu.hms.accounts.AccountStore;
 import com.apu.hms.controllers.LoginController;
-import com.apu.hms.services.AccessControl;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -90,39 +89,25 @@ public class DashboardView extends JPanel {
         switch (role) {
             case "Admin Staff":
                 return new String[]{
-                    "Manage user accounts",
-                    "Assign doctors to medical managers",
-                    "Manage hospital rooms, wards, labs and imaging facilities",
-                    "Configure consultation rates and insurance networks",
-                    "View hospital records and reports"};
+                    "Manage user accounts",};
             case "Medical Manager":
                 return new String[]{
                     "Edit personal profile",
-                    "Create and update clinical departments",
-                    "Design doctor shift rosters",
-                    "View patient health records",
-                    "View appointments and scheduling",
-                    "View prescriptions and treatments",
-                    "View billing and payment records",
-                    "View hospital metrics and revenue reports",
-                    "Oversee department staff"};
+                    "Appointment",
+                    "Billing and payment",
+                    "Doctors"};
             case "Doctor":
                 return new String[]{
                     "Edit personal profile",
-                    "View appointment schedule",
-                    "Log patient vital signs",
-                    "Write consultation notes",
-                    "Issue digital prescriptions",
-                    "Request lab tests and imaging",
+                    "Appointment",
+                    "Billing and payment",
                     "View patient medical history"};
             case "Patient":
                 return new String[]{
                     "Edit personal profile",
-                    "Browse doctor consultation slots",
-                    "Book, reschedule or cancel appointments",
+                    "Appointments",
                     "View personal medical history",
-                    "View prescriptions",
-                    "Submit ratings and comments"};
+                    "Billing and payment",};
             default:
                 return new String[]{"No functions available"};
         }
@@ -135,60 +120,20 @@ public class DashboardView extends JPanel {
     }
 
     private void openSelectedFunction(String selectedFunction) {
-        if (selectedFunction == null) {
-            JOptionPane.showMessageDialog(this, "Select a function first.",
-                "No Function Selected", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        if (!AccessControl.canAccess(role, selectedFunction)) {
-            JOptionPane.showMessageDialog(this,
-                "You do not have permission to access: " + selectedFunction + "\nRole: " + role,
-                "Access Denied", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         if (selectedFunction.equals("Manage user accounts")) {
             manageUserAccounts();
         } else if (selectedFunction.equals("Edit personal profile")) {
             editProfile();
-        } else if (selectedFunction.contains("Book, reschedule")) {
+        } else if (selectedFunction.contains("Appointment")) {
             bookAppointment();
         } else if (selectedFunction.equals("View personal medical history")) {
-            JOptionPane.showMessageDialog(this, "No medical history has been recorded yet.",
-                "Medical History", JOptionPane.INFORMATION_MESSAGE);
-        } else if (selectedFunction.equals("View prescriptions")) {
-            JOptionPane.showMessageDialog(this, "No prescriptions have been issued yet.",
-                "Prescriptions", JOptionPane.INFORMATION_MESSAGE);
-        } else if (selectedFunction.equals("Submit ratings and comments")) {
-            submitFeedback();
-        } else if (selectedFunction.equals("View appointment schedule")) {
-            viewDoctorSchedule();
-        } else if (selectedFunction.equals("Create and update clinical departments")) {
-            manageDepartments();
-        } else if (selectedFunction.equals("Design doctor shift rosters")) {
-            manageShiftRoster();
+            medicalHistory();
         } else if (selectedFunction.equals("View patient health records")) {
-            showManagerInformation("Patient Health Records",
-                "Patient records are available for compliance and clinical oversight.");
-        } else if (selectedFunction.equals("View appointments and scheduling")) {
-            showManagerInformation("Appointments and Scheduling",
-                "Department appointment schedules are available for review.");
-        } else if (selectedFunction.equals("View prescriptions and treatments")) {
-            showManagerInformation("Prescriptions and Treatments",
-                "Prescription and treatment records are available for compliance monitoring.");
-        } else if (selectedFunction.equals("View billing and payment records")) {
-            showManagerInformation("Billing and Payments",
-                "Billing records and payment disputes are available for review.");
-        } else if (selectedFunction.equals("View hospital metrics and revenue reports")) {
-            showManagerInformation("Hospital Reports",
-                "Hospital metrics and revenue summaries are ready for review.");
-        } else if (selectedFunction.equals("Oversee department staff")) {
-            showManagerInformation("Department Staff",
-                "Department staff assignments are available for oversight.");
-        } else {
-            JOptionPane.showMessageDialog(this, selectedFunction + " selected for " + userId + ".",
-                "Function", JOptionPane.INFORMATION_MESSAGE);
+            viewDoctorSchedule();
+        } else if (selectedFunction.equals("Billing and payment")) {
+            billingAndPayment();
+        } else if (selectedFunction.equals("Doctors")) {
+            manageDepartments();
         }
     }
 
@@ -206,7 +151,6 @@ public class DashboardView extends JPanel {
 
         if (JOptionPane.showConfirmDialog(this, form, "Edit Profile",
                 JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            // no success popup; continue directly to the profile screen
         }
     }
 
@@ -274,14 +218,6 @@ public class DashboardView extends JPanel {
         }
     }
 
-    private void submitFeedback() {
-        JTextArea feedbackArea = new JTextArea(5, 30);
-        if (JOptionPane.showConfirmDialog(this, new JScrollPane(feedbackArea),
-                "Submit Feedback", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            // no success popup; continue directly to the feedback form flow
-        }
-    }
-
     private void manageDepartments() {
         JTextField departmentField = new JTextField();
         JTextField specialtyField = new JTextField();
@@ -296,22 +232,28 @@ public class DashboardView extends JPanel {
         }
     }
 
-    private void manageShiftRoster() {
-        JTextField doctorField = new JTextField();
-        JTextField shiftField = new JTextField();
+    private void billingAndPayment() {
+        JTextField invoiceField = new JTextField();
+        JTextField amountField = new JTextField();
         JPanel form = new JPanel(new GridLayout(2, 2, 8, 8));
-        form.add(new JLabel("Doctor:"));
-        form.add(doctorField);
-        form.add(new JLabel("Shift:"));
-        form.add(shiftField);
-        if (JOptionPane.showConfirmDialog(this, form, "Doctor Shift Roster",
+        form.add(new JLabel("Invoice Number:"));
+        form.add(invoiceField);
+        form.add(new JLabel("Amount:"));
+        form.add(amountField);
+        if (JOptionPane.showConfirmDialog(this, form, "Billing and Payment",
                 JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            // no success popup; continue directly to the roster workflow
+            // no success popup; continue directly to the payment workflow
         }
     }
 
-    private void showManagerInformation(String title, String message) {
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    private void medicalHistory() {
+        JTextArea historyArea = new JTextArea(10, 30);
+        historyArea.setEditable(false);
+        historyArea.setText("Medical history for patient " + userId + ":\n\n"
+                + "No records available.");
+        JScrollPane scrollPane = new JScrollPane(historyArea);
+        JOptionPane.showMessageDialog(this, scrollPane,
+            "Medical History", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void manageUserAccounts() {

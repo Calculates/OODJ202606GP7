@@ -43,9 +43,9 @@ OODJ202606/
    - `Prescription` - Digital medication records
    - `Billing` - Payment tracking with medical grading
 
-### 5. **Persistence**
-   - File-based storage using Java serialization
-   - Text files for data storage (no databases allowed)
+### 5. **Data Storage**
+   - Account and appointment data are kept in memory for the current session
+   - A database or file-based persistence layer can be added later
 
 ## User Roles & Functionalities
 
@@ -101,7 +101,7 @@ java -cp bin com.apu.hms.HospitalManagementSystem
 
 ## File Management
 
-- **Data Storage**: Runtime application state is kept in memory and Java object models within the source code.
+- **Data Storage**: Runtime application state is kept in memory while the application is running.
 - **No extra launcher scripts**: The project is intended to run directly from VS Code using [main.java](main.java).
 - **File Manager**: Utility classes are kept within the Java source structure when needed.
 

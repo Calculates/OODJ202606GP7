@@ -2,94 +2,154 @@ package com.apu.hms.views;
 
 import com.apu.hms.accounts.AccountStore;
 import com.apu.hms.controllers.LoginController;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import javax.swing.*;
 
-/**
- * LoginView - GUI for user login
- * Demonstrates use of Java Swing for graphical interface
- */
 public class LoginView extends JPanel {
     private static final long serialVersionUID = 1L;
-    
+    private static final Color BACKGROUND = new Color(232, 244, 252);
+    private static final Color BUTTON_BLUE = new Color(103, 181, 235);
+    private static final Font LABEL_FONT = new Font("Arial", Font.PLAIN, 24);
+    private static final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 24);
+
     private final JFrame mainFrame;
     private final LoginController loginController;
     private JTextField userIdField;
     private JPasswordField passwordField;
-    
+
     public LoginView(JFrame mainFrame) {
         this.mainFrame = mainFrame;
         this.loginController = new LoginController();
         initializeComponents();
     }
-    
+
     private void initializeComponents() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 240, 240));
-        
-        // Header panel
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(0, 102, 204));
-        JLabel titleLabel = new JLabel("APU Medical Centre - Hospital Management System");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        headerPanel.add(titleLabel);
-        add(headerPanel, BorderLayout.NORTH);
-        
-        // Main content panel
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new GridBagLayout());
-        contentPanel.setBackground(new Color(240, 240, 240));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Login box panel
-        JPanel loginBox = new JPanel();
-        loginBox.setLayout(new GridLayout(4, 2, 10, 10));
-        loginBox.setBorder(BorderFactory.createTitledBorder("Login"));
-        loginBox.setBackground(Color.WHITE);
-        loginBox.setPreferredSize(new Dimension(400, 250));
-        
-        // User ID
-        loginBox.add(new JLabel("User ID:"));
-        userIdField = new JTextField();
-        loginBox.add(userIdField);
-        
-        // Password
-        loginBox.add(new JLabel("Password:"));
-        passwordField = new JPasswordField();
-        loginBox.add(passwordField);
-        
-        // Buttons
-        JButton loginButton = new JButton("Login");
-        loginButton.setBackground(new Color(0, 102, 204));
-        loginButton.setForeground(Color.BLACK);
-        loginButton.setFont(new Font("Arial", Font.BOLD, 12));
-        loginButton.addActionListener(e -> handleLogin());
-        loginBox.add(loginButton);
-        
-        JButton registerButton = new JButton("Register");
-        registerButton.setBackground(new Color(0, 153, 76));
-        registerButton.setForeground(Color.BLACK);
-        registerButton.setFont(new Font("Arial", Font.BOLD, 12));
-        registerButton.addActionListener(e -> handleRegister());
-        loginBox.add(registerButton);
+        setBackground(BACKGROUND);
+        setBorder(BorderFactory.createEmptyBorder(28, 48, 36, 48));
 
-        loginBox.add(new JLabel());
-        JButton quitButton = new JButton("Quit");
-        quitButton.setForeground(Color.BLACK);
-        quitButton.setFont(new Font("Arial", Font.BOLD, 12));
-        quitButton.addActionListener(e -> System.exit(0));
-        loginBox.add(quitButton);
-        
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        contentPanel.add(loginBox, gbc);
-        
-        add(contentPanel, BorderLayout.CENTER);
+        JPanel content = new JPanel(new GridBagLayout());
+        content.setOpaque(false);
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.insets = new Insets(8, 8, 8, 8);
+
+        JLabel logo = new JLabel("<html><div style='text-align:center;'>"
+                + "<font color='#0b8f4d' size='10'><b>H</b></font> "
+                + "<font color='#1655a8' size='10'><b>M</b></font> "
+                + "<font color='#0b8f4d' size='10'><b>S</b></font><br>"
+                + "<font color='#1f2937' size='4'>Hospital Management System</font>"
+                + "</div></html>");
+        logo.setHorizontalAlignment(SwingConstants.CENTER);
+        logo.setPreferredSize(new Dimension(180, 90));
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0.25;
+        content.add(logo, constraints);
+
+        JLabel title = new JLabel("LOGIN", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 36));
+        title.setForeground(new Color(25, 47, 75));
+        constraints.gridx = 1;
+        constraints.gridwidth = 2;
+        constraints.weightx = 0.75;
+        content.add(title, constraints);
+
+        JLabel usernameLabel = createLabel("USERNAME:");
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.gridwidth = 1;
+        content.add(usernameLabel, constraints);
+
+        userIdField = new JTextField();
+        styleInput(userIdField);
+        constraints.gridx = 1;
+        constraints.gridwidth = 2;
+        content.add(userIdField, constraints);
+
+        JLabel passwordLabel = createLabel("PASSWORD:");
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.gridwidth = 1;
+        content.add(passwordLabel, constraints);
+
+        passwordField = new JPasswordField();
+        styleInput(passwordField);
+        constraints.gridx = 1;
+        constraints.gridwidth = 2;
+        content.add(passwordField, constraints);
+
+        JCheckBox showPassword = new JCheckBox("Show Password");
+        showPassword.setOpaque(false);
+        showPassword.setFont(new Font("Arial", Font.PLAIN, 18));
+        showPassword.addActionListener(e -> passwordField.setEchoChar(
+                showPassword.isSelected() ? (char) 0 : '\u2022'));
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
+        content.add(showPassword, constraints);
+
+        JButton resetButton = new JButton("Reset Password");
+        resetButton.setBorderPainted(false);
+        resetButton.setContentAreaFilled(false);
+        resetButton.setForeground(Color.BLUE);
+        resetButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        resetButton.addActionListener(e -> handleResetPassword());
+        constraints.gridx = 2;
+        constraints.anchor = GridBagConstraints.EAST;
+        content.add(resetButton, constraints);
+
+        JButton loginButton = createActionButton("LOGIN");
+        loginButton.addActionListener(e -> handleLogin());
+        constraints.gridx = 0;
+        constraints.gridy = 4;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0.5;
+        constraints.anchor = GridBagConstraints.CENTER;
+        content.add(loginButton, constraints);
+
+        JButton registerButton = createActionButton("SIGN UP");
+        registerButton.addActionListener(e -> handleRegister());
+        constraints.gridx = 1;
+        constraints.gridwidth = 2;
+        content.add(registerButton, constraints);
+
+        add(content, BorderLayout.CENTER);
+        SwingUtilities.invokeLater(() -> userIdField.requestFocusInWindow());
     }
-    
+
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(LABEL_FONT);
+        label.setForeground(new Color(25, 47, 75));
+        return label;
+    }
+
+    private void styleInput(JTextField field) {
+        field.setFont(new Font("Arial", Font.PLAIN, 20));
+        field.setPreferredSize(new Dimension(0, 50));
+        field.setBorder(BorderFactory.createLineBorder(new Color(35, 35, 35)));
+    }
+
+    private JButton createActionButton(String text) {
+        JButton button = new JButton(text);
+        button.setBackground(BUTTON_BLUE);
+        button.setForeground(Color.BLACK);
+        button.setFont(BUTTON_FONT);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(12, 22, 12, 22));
+        button.setPreferredSize(new Dimension(250, 64));
+        return button;
+    }
+
     private void handleLogin() {
         String userId = userIdField.getText().trim();
         String password = new String(passwordField.getPassword());
@@ -112,7 +172,13 @@ public class LoginView extends JPanel {
         mainFrame.revalidate();
         mainFrame.repaint();
     }
-    
+
+    private void handleResetPassword() {
+        JOptionPane.showMessageDialog(this,
+                "Please contact the administrator to reset your password.",
+                "Reset Password", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private void handleRegister() {
         JTextField newUserId = new JTextField();
         JPasswordField newPassword = new JPasswordField();

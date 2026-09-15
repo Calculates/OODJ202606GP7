@@ -2,6 +2,7 @@ package com.apu.hms.views;
 
 import com.apu.hms.accounts.AccountStore;
 import com.apu.hms.controllers.LoginController;
+import com.apu.hms.services.ClinicalStore;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -58,9 +59,6 @@ public class DashboardView extends JPanel {
         functionList.setFont(new Font("Arial", Font.PLAIN, 14));
         functionList.setFixedCellHeight(34);
         functionList.setBorder(BorderFactory.createEmptyBorder());
-        if ("Doctor".equals(role)) {
-            functionList.setCellRenderer(new DoctorFunctionRenderer(userId));
-        }
         functionList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent event) {
@@ -89,25 +87,30 @@ public class DashboardView extends JPanel {
         switch (role) {
             case "Admin Staff":
                 return new String[]{
-                    "Manage user accounts",};
+                    "Manage user accounts",
+                    "Create ward or clinic",
+                    "Create department or specialty",
+                    "Analytical reports"};
             case "Medical Manager":
                 return new String[]{
-                    "Edit personal profile",
                     "Appointment",
-                    "Billing and payment",
-                    "Doctors"};
+                    "Create ward or clinic",
+                    "Create department or specialty",
+                    "Design assessment type",
+                    "Medical grading and billing",
+                    "Analytical reports"};
             case "Doctor":
                 return new String[]{
-                    "Edit personal profile",
                     "Appointment",
-                    "Billing and payment",
-                    "View patient medical history"};
+                    "View appointment schedule",
+                    "Key in assessment and lab results",
+                    "Clinical feedback and prescription",
+                    "Medical grading and billing"};
             case "Patient":
                 return new String[]{
-                    "Edit personal profile",
                     "Appointments",
                     "View personal medical history",
-                    "Billing and payment",};
+                    "View prescriptions"};
             default:
                 return new String[]{"No functions available"};
         }
@@ -122,35 +125,30 @@ public class DashboardView extends JPanel {
     private void openSelectedFunction(String selectedFunction) {
         if (selectedFunction.equals("Manage user accounts")) {
             manageUserAccounts();
-        } else if (selectedFunction.equals("Edit personal profile")) {
-            editProfile();
+        } else if (selectedFunction.equals("Create ward or clinic")) {
+            createWard();
+        } else if (selectedFunction.equals("Create department or specialty")) {
+            createDepartment();
+        } else if (selectedFunction.equals("Design assessment type")) {
+            createAssessmentType();
+        } else if (selectedFunction.equals("Key in assessment and lab results")) {
+            recordAssessment();
+        } else if (selectedFunction.equals("Clinical feedback and prescription")) {
+            recordClinicalTreatment();
+        } else if (selectedFunction.equals("Medical grading and billing")) {
+            createBill();
+        } else if (selectedFunction.equals("Analytical reports")) {
+            showReport();
         } else if (selectedFunction.contains("Appointment")) {
-            bookAppointment();
+            if (selectedFunction.equals("View appointment schedule")) {
+                viewDoctorSchedule();
+            } else {
+                bookAppointment();
+            }
         } else if (selectedFunction.equals("View personal medical history")) {
             medicalHistory();
-        } else if (selectedFunction.equals("View patient health records")) {
-            viewDoctorSchedule();
-        } else if (selectedFunction.equals("Billing and payment")) {
-            billingAndPayment();
-        } else if (selectedFunction.equals("Doctors")) {
-            manageDepartments();
-        }
-    }
-
-    private void editProfile() {
-        JTextField nameField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField phoneField = new JTextField();
-        JPanel form = new JPanel(new GridLayout(3, 2, 8, 8));
-        form.add(new JLabel("Name:"));
-        form.add(nameField);
-        form.add(new JLabel("Email:"));
-        form.add(emailField);
-        form.add(new JLabel("Phone:"));
-        form.add(phoneField);
-
-        if (JOptionPane.showConfirmDialog(this, form, "Edit Profile",
-                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+        } else if (selectedFunction.equals("View prescriptions")) {
+            showRecords("Prescriptions", ClinicalStore.getPatientPrescriptions(userId));
         }
     }
 
@@ -197,63 +195,154 @@ public class DashboardView extends JPanel {
             "Appointment Schedule", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private static class DoctorFunctionRenderer extends DefaultListCellRenderer {
-        private final String doctorId;
-
-        private DoctorFunctionRenderer(String doctorId) {
-            this.doctorId = doctorId;
-        }
-
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                boolean isSelected, boolean cellHasFocus) {
-            JLabel label = (JLabel) super.getListCellRendererComponent(
-                    list, value, index, isSelected, cellHasFocus);
-            if ("View appointment schedule".equals(value)
-                    && !AccountStore.getAppointmentsForDoctor(doctorId).isEmpty()) {
-                label.setText("● " + value);
-                label.setForeground(isSelected ? Color.WHITE : Color.RED);
-            }
-            return label;
-        }
-    }
-
-    private void manageDepartments() {
-        JTextField departmentField = new JTextField();
-        JTextField specialtyField = new JTextField();
-        JPanel form = new JPanel(new GridLayout(2, 2, 8, 8));
-        form.add(new JLabel("Department:"));
-        form.add(departmentField);
-        form.add(new JLabel("Specialty:"));
-        form.add(specialtyField);
-        if (JOptionPane.showConfirmDialog(this, form, "Clinical Department",
-                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            // no success popup; continue directly to the department workflow
-        }
-    }
-
-    private void billingAndPayment() {
-        JTextField invoiceField = new JTextField();
-        JTextField amountField = new JTextField();
-        JPanel form = new JPanel(new GridLayout(2, 2, 8, 8));
-        form.add(new JLabel("Invoice Number:"));
-        form.add(invoiceField);
-        form.add(new JLabel("Amount:"));
-        form.add(amountField);
-        if (JOptionPane.showConfirmDialog(this, form, "Billing and Payment",
-                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            // no success popup; continue directly to the payment workflow
-        }
-    }
-
     private void medicalHistory() {
         JTextArea historyArea = new JTextArea(10, 30);
         historyArea.setEditable(false);
-        historyArea.setText("Medical history for patient " + userId + ":\n\n"
-                + "No records available.");
+        StringBuilder history = new StringBuilder("Medical history for patient ")
+                .append(userId).append(":\n\n");
+        for (String record : ClinicalStore.getPatientHistory(userId)) {
+            history.append(record).append('\n');
+        }
+        if (history.toString().endsWith("\n\n")) {
+            history.append("No records available.");
+        }
+        historyArea.setText(history.toString());
         JScrollPane scrollPane = new JScrollPane(historyArea);
         JOptionPane.showMessageDialog(this, scrollPane,
             "Medical History", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void createWard() {
+        JTextField name = new JTextField();
+        JTextField type = new JTextField();
+        JTextField capacity = new JTextField();
+        JPanel form = createForm(new String[]{"Name:", "Type:", "Capacity:"}, name, type, capacity);
+        if (showForm(form, "Create Ward or Clinic") == JOptionPane.OK_OPTION) {
+            try {
+                if (!ClinicalStore.addWard(name.getText(), type.getText(), Integer.parseInt(capacity.getText().trim()))) {
+                    showError("Enter a unique name, type, and positive capacity.");
+                }
+            } catch (NumberFormatException exception) {
+                showError("Capacity must be a whole number.");
+            }
+        }
+    }
+
+    private void createDepartment() {
+        JTextField name = new JTextField();
+        JTextField specialty = new JTextField();
+        JPanel form = createForm(new String[]{"Department:", "Specialty:"}, name, specialty);
+        if (showForm(form, "Create Department or Specialty") == JOptionPane.OK_OPTION
+                && !ClinicalStore.addDepartment(name.getText(), specialty.getText())) {
+            showError("Enter a unique department and specialty.");
+        }
+    }
+
+    private void createAssessmentType() {
+        JTextField name = new JTextField();
+        JTextField description = new JTextField();
+        JPanel form = createForm(new String[]{"Assessment:", "Description:"}, name, description);
+        if (showForm(form, "Design Assessment Type") == JOptionPane.OK_OPTION
+                && !ClinicalStore.addAssessmentType(name.getText(), description.getText())) {
+            showError("Enter a unique assessment and description.");
+        }
+    }
+
+    private void recordAssessment() {
+        JTextField patient = new JTextField();
+        JTextField type = new JTextField();
+        JTextField result = new JTextField();
+        JTextField lab = new JTextField();
+        JPanel form = createForm(new String[]{"Patient ID:", "Assessment type:", "Result:", "Lab result:"},
+                patient, type, result, lab);
+        if (showForm(form, "Medical Assessment and Lab Results") == JOptionPane.OK_OPTION
+                && !ClinicalStore.addAssessment(patient.getText(), userId, type.getText(),
+                        result.getText(), lab.getText())) {
+            showError("Patient, assessment type, and result are required.");
+        }
+    }
+
+    private void recordClinicalTreatment() {
+        JTextField patient = new JTextField();
+        JTextField feedback = new JTextField();
+        JTextField prescription = new JTextField();
+        JPanel form = createForm(new String[]{"Patient ID:", "Clinical feedback:", "Prescription:"},
+                patient, feedback, prescription);
+        if (showForm(form, "Clinical Feedback and Prescription") == JOptionPane.OK_OPTION) {
+            boolean savedFeedback = ClinicalStore.addFeedback(patient.getText(), userId, feedback.getText());
+            boolean savedPrescription = ClinicalStore.addPrescription(patient.getText(), userId, prescription.getText());
+            if (!savedFeedback && !savedPrescription) {
+                showError("Enter a patient ID and at least one clinical record.");
+            }
+        }
+    }
+
+    private void createBill() {
+        JTextField patient = new JTextField();
+        JComboBox<String> grade = new JComboBox<>(new String[]{"Good", "Fair", "Poor"});
+        JTextField consultation = new JTextField("0");
+        JTextField lab = new JTextField("0");
+        JTextField medication = new JTextField("0");
+        JPanel form = new JPanel(new GridLayout(5, 2, 8, 8));
+        form.add(new JLabel("Patient ID:"));
+        form.add(patient);
+        form.add(new JLabel("Medical grade:"));
+        form.add(grade);
+        form.add(new JLabel("Consultation cost:"));
+        form.add(consultation);
+        form.add(new JLabel("Lab cost:"));
+        form.add(lab);
+        form.add(new JLabel("Medication cost:"));
+        form.add(medication);
+        if (showForm(form, "Medical Grading and Billing") == JOptionPane.OK_OPTION) {
+            try {
+                boolean saved = ClinicalStore.addBill(patient.getText(), (String) grade.getSelectedItem(),
+                        Double.parseDouble(consultation.getText()), Double.parseDouble(lab.getText()),
+                        Double.parseDouble(medication.getText()));
+                if (!saved) {
+                    showError("Enter a patient ID and non-negative costs.");
+                }
+            } catch (NumberFormatException exception) {
+                showError("Costs must be valid numbers.");
+            }
+        }
+    }
+
+    private void showReport() {
+        JTextArea report = new JTextArea(14, 38);
+        report.setEditable(false);
+        report.setText(ClinicalStore.getReport());
+        JOptionPane.showMessageDialog(this, new JScrollPane(report),
+                "Analytical Reports", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private JPanel createForm(String[] labels, JTextField... fields) {
+        JPanel form = new JPanel(new GridLayout(labels.length, 2, 8, 8));
+        for (int index = 0; index < labels.length; index++) {
+            form.add(new JLabel(labels[index]));
+            form.add(fields[index]);
+        }
+        return form;
+    }
+
+    private int showForm(JPanel form, String title) {
+        return JOptionPane.showConfirmDialog(this, form, title, JOptionPane.OK_CANCEL_OPTION);
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Invalid Data", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showRecords(String title, java.util.List<String> records) {
+        StringBuilder output = new StringBuilder();
+        for (String record : records) {
+            output.append(record).append('\n');
+        }
+        if (output.length() == 0) {
+            output.append("No records available.");
+        }
+        JOptionPane.showMessageDialog(this, new JScrollPane(new JTextArea(output.toString(), 10, 38)),
+                title, JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void manageUserAccounts() {

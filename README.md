@@ -44,10 +44,20 @@ OODJ202606/
    - `Billing` - Payment tracking with medical grading
 
 ### 5. **Data Storage**
-   - Account and appointment data are kept in memory for the current session
-   - A database or file-based persistence layer can be added later
+   - Account data is stored in `data/accounts.txt`
+   - Appointment data is stored in `data/appointments.txt`
+   - The text files are loaded when the application starts and updated after changes
 
 ## User Roles & Functionalities
+
+### **Implemented Core Features**
+- Login access and patient registration
+- Medical grading and billing with text-file persistence
+- Ward/clinic and department/specialty creation
+- Medical assessment type design
+- Assessment and lab-result entry
+- Clinical feedback and prescription records
+- Analytical reports for stored operational data
 
 ### **Admin Staff**
 - Create/Read/Update/Delete users
@@ -101,7 +111,7 @@ java -cp bin com.apu.hms.HospitalManagementSystem
 
 ## File Management
 
-- **Data Storage**: Runtime application state is kept in memory while the application is running.
+- **Data Storage**: Account and appointment records are persisted in pipe-delimited `.txt` files under `data/`.
 - **No extra launcher scripts**: The project is intended to run directly from VS Code using [main.java](main.java).
 - **File Manager**: Utility classes are kept within the Java source structure when needed.
 

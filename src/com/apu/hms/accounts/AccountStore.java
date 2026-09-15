@@ -1,23 +1,19 @@
 package com.apu.hms.accounts;
 
+import com.apu.hms.utils.FileManager;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class AccountStore {
     private static final List<AccountRecord> ACCOUNTS = new ArrayList<>();
     private static final List<AppointmentRecord> APPOINTMENTS = new ArrayList<>();
+    private static final String DELIMITER = FileManager.delimiter();
 
     static {
-        ACCOUNTS.add(new AccountRecord(AdminAccount.ROLE, AdminAccount.USER_ID, AdminAccount.PASSWORD));
-        ACCOUNTS.add(new AccountRecord(MedicalManagerAccount.ROLE,
-                MedicalManagerAccount.USER_ID, MedicalManagerAccount.PASSWORD));
-        ACCOUNTS.add(new AccountRecord(DoctorAccount.ROLE,
-                DoctorAccount.USER_ID, DoctorAccount.PASSWORD));
-        for (String[] patientAccount : PatientAccount.getAccounts()) {
-            ACCOUNTS.add(new AccountRecord(PatientAccount.ROLE,
-                patientAccount[0], patientAccount[1]));
-        }
+        loadAccounts();
+        loadAppointments();
     }
 
     private AccountStore() {
@@ -37,11 +33,7 @@ public final class AccountStore {
             return false;
         }
         String cleanUserId = userId.trim();
-        if (!PatientAccount.addAccount(cleanUserId, password)) {
-            return false;
-        }
-        ACCOUNTS.add(new AccountRecord(PatientAccount.ROLE, cleanUserId, password));
-        return true;
+        return addAccount(PatientAccount.ROLE, cleanUserId, password);
     }
 
     public static boolean createStaffAccount(String role, String userId, String password) {
@@ -96,6 +88,7 @@ public final class AccountStore {
 
         ACCOUNTS.remove(existing);
         ACCOUNTS.add(new AccountRecord(newRole.trim(), finalUserId, finalPassword));
+        saveAccounts();
         return true;
     }
 
@@ -113,11 +106,13 @@ public final class AccountStore {
         }
 
         ACCOUNTS.remove(existing);
+        saveAccounts();
         return true;
     }
 
     public static void addAppointment(String patientId, String doctorId, LocalDateTime dateTime) {
         APPOINTMENTS.add(new AppointmentRecord(patientId, doctorId, dateTime));
+        saveAppointments();
     }
 
     public static List<AppointmentRecord> getAppointmentsForDoctor(String doctorId) {
@@ -130,11 +125,12 @@ public final class AccountStore {
         return matches;
     }
 
-    private static boolean addAccount(String role, String userId, String password) {
+    public static boolean addAccount(String role, String userId, String password) {
         if (!isValidAccount(userId, password) || findByUserId(userId) != null) {
             return false;
         }
         ACCOUNTS.add(new AccountRecord(role, userId.trim(), password));
+        saveAccounts();
         return true;
     }
 
@@ -150,6 +146,56 @@ public final class AccountStore {
             }
         }
         return null;
+    }
+
+    private static void loadAccounts() {
+        for (String line : FileManager.readLines("accounts.txt")) {
+            String[] fields = line.split(java.util.regex.Pattern.quote(DELIMITER), -1);
+            if (fields.length == 3 && isValidAccount(fields[1], fields[2])) {
+                ACCOUNTS.add(new AccountRecord(fields[0], fields[1], fields[2]));
+            }
+        }
+        if (ACCOUNTS.isEmpty()) {
+            ACCOUNTS.add(new AccountRecord(AdminAccount.ROLE, AdminAccount.USER_ID, AdminAccount.PASSWORD));
+            ACCOUNTS.add(new AccountRecord(MedicalManagerAccount.ROLE,
+                    MedicalManagerAccount.USER_ID, MedicalManagerAccount.PASSWORD));
+            ACCOUNTS.add(new AccountRecord(DoctorAccount.ROLE,
+                    DoctorAccount.USER_ID, DoctorAccount.PASSWORD));
+            ACCOUNTS.add(new AccountRecord(PatientAccount.ROLE,
+                    PatientAccount.USER_ID, PatientAccount.PASSWORD));
+            saveAccounts();
+        }
+    }
+
+    private static void loadAppointments() {
+        for (String line : FileManager.readLines("appointments.txt")) {
+            String[] fields = line.split(java.util.regex.Pattern.quote(DELIMITER), -1);
+            if (fields.length == 3) {
+                try {
+                    APPOINTMENTS.add(new AppointmentRecord(fields[0], fields[1],
+                            LocalDateTime.parse(fields[2])));
+                } catch (DateTimeParseException exception) {
+                }
+            }
+        }
+    }
+
+    private static void saveAccounts() {
+        List<String> lines = new ArrayList<>();
+        for (AccountRecord account : ACCOUNTS) {
+            lines.add(account.getRole() + DELIMITER + account.getUserId()
+                    + DELIMITER + account.getPassword());
+        }
+        FileManager.writeLines("accounts.txt", lines);
+    }
+
+    private static void saveAppointments() {
+        List<String> lines = new ArrayList<>();
+        for (AppointmentRecord appointment : APPOINTMENTS) {
+            lines.add(appointment.getPatientId() + DELIMITER + appointment.getDoctorId()
+                    + DELIMITER + appointment.getDateTime());
+        }
+        FileManager.writeLines("appointments.txt", lines);
     }
 
     public static final class AccountRecord {

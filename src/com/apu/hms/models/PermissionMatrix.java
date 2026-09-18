@@ -17,7 +17,7 @@ public final class PermissionMatrix {
         addRole("Doctor", PermissionLevel.NONE, PermissionLevel.FULL,
                 PermissionLevel.READ_WRITE, PermissionLevel.FULL, PermissionLevel.NONE,
                 PermissionLevel.READ);
-        addRole("Patient", PermissionLevel.NONE, PermissionLevel.READ,
+        addRole("Patient", PermissionLevel.NONE, PermissionLevel.READ_WRITE,
                 PermissionLevel.READ_WRITE, PermissionLevel.READ, PermissionLevel.READ_WRITE,
                 PermissionLevel.NONE);
     }

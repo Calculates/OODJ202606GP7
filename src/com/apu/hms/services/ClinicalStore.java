@@ -13,14 +13,19 @@ public final class ClinicalStore {
     private static final List<ClinicalRecord> ASSESSMENTS = loadClinicalRecords("assessments.txt");
     private static final List<ClinicalRecord> FEEDBACK = loadClinicalRecords("clinical_feedback.txt");
     private static final List<ClinicalRecord> PRESCRIPTIONS = loadClinicalRecords("prescriptions.txt");
+    private static final List<String> LAB_REQUESTS = load("lab_requests.txt");
+    private static final List<String> DOCTOR_ROSTERS = load("doctor_rosters.txt");
     private static final List<BillRecord> BILLS = loadBills();
 
     private ClinicalStore() {
     }
 
     public static boolean addWard(String name, String type, int capacity) {
+        if (isBlank(name) || isBlank(type) || capacity < 1) {
+            return false;
+        }
         String value = clean(name) + DELIMITER + clean(type) + DELIMITER + capacity;
-        if (isBlank(name) || isBlank(type) || capacity < 1 || containsValue(WARDS, value)) {
+        if (containsValue(WARDS, value)) {
             return false;
         }
         WARDS.add(value);
@@ -29,8 +34,11 @@ public final class ClinicalStore {
     }
 
     public static boolean addDepartment(String name, String specialty) {
+        if (isBlank(name) || isBlank(specialty)) {
+            return false;
+        }
         String value = clean(name) + DELIMITER + clean(specialty);
-        if (isBlank(name) || isBlank(specialty) || containsValue(DEPARTMENTS, value)) {
+        if (containsValue(DEPARTMENTS, value)) {
             return false;
         }
         DEPARTMENTS.add(value);
@@ -39,8 +47,11 @@ public final class ClinicalStore {
     }
 
     public static boolean addAssessmentType(String name, String description) {
+        if (isBlank(name) || isBlank(description)) {
+            return false;
+        }
         String value = clean(name) + DELIMITER + clean(description);
-        if (isBlank(name) || isBlank(description) || containsValue(ASSESSMENT_TYPES, value)) {
+        if (containsValue(ASSESSMENT_TYPES, value)) {
             return false;
         }
         ASSESSMENT_TYPES.add(value);
@@ -54,7 +65,7 @@ public final class ClinicalStore {
             return false;
         }
         ASSESSMENTS.add(new ClinicalRecord(patientId, doctorId, type,
-                result, labResult, LocalDateTime.now()));
+                result, isBlank(labResult) ? "" : clean(labResult), LocalDateTime.now()));
         saveClinicalRecords("assessments.txt", ASSESSMENTS);
         return true;
     }
@@ -64,7 +75,7 @@ public final class ClinicalStore {
             return false;
         }
         FEEDBACK.add(new ClinicalRecord(patientId, doctorId, "Feedback",
-                feedback, "", LocalDateTime.now()));
+                clean(feedback), "", LocalDateTime.now()));
         saveClinicalRecords("clinical_feedback.txt", FEEDBACK);
         return true;
     }
@@ -74,21 +85,113 @@ public final class ClinicalStore {
             return false;
         }
         PRESCRIPTIONS.add(new ClinicalRecord(patientId, doctorId, "Prescription",
-                medicine, "", LocalDateTime.now()));
+                clean(medicine), "", LocalDateTime.now()));
         saveClinicalRecords("prescriptions.txt", PRESCRIPTIONS);
         return true;
+    }
+
+    public static boolean addPatientFeedback(String patientId, String feedback) {
+        return addFeedback(patientId, patientId, feedback);
+    }
+
+    public static boolean addLabRequest(String patientId, String doctorId, String request) {
+        if (isBlank(patientId) || isBlank(doctorId) || isBlank(request)) {
+            return false;
+        }
+        LAB_REQUESTS.add(clean(patientId) + DELIMITER + clean(doctorId) + DELIMITER + clean(request));
+        save("lab_requests.txt", LAB_REQUESTS);
+        return true;
+    }
+
+    public static List<String> getLabRequests(String doctorId) {
+        List<String> matches = new ArrayList<>();
+        if (isBlank(doctorId)) {
+            return matches;
+        }
+        for (String request : LAB_REQUESTS) {
+            String[] fields = split(request);
+            if (fields.length == 3 && fields[1].equals(doctorId.trim())) {
+                matches.add("Patient: " + fields[0] + " | Request: " + fields[2]);
+            }
+        }
+        return matches;
+    }
+
+    public static boolean addDoctorRoster(String doctorId, String shift) {
+        if (isBlank(doctorId) || isBlank(shift)) {
+            return false;
+        }
+        String value = clean(doctorId) + DELIMITER + clean(shift);
+        if (containsValue(DOCTOR_ROSTERS, value)) {
+            return false;
+        }
+        DOCTOR_ROSTERS.add(value);
+        save("doctor_rosters.txt", DOCTOR_ROSTERS);
+        return true;
+    }
+
+    public static List<String> getDoctorRosters() {
+        return new ArrayList<>(DOCTOR_ROSTERS);
     }
 
     public static boolean addBill(String patientId, String grade, double consultation,
             double lab, double medication) {
         if (isBlank(patientId) || !isGrade(grade)
-                || consultation < 0 || lab < 0 || medication < 0) {
+            || !Double.isFinite(consultation) || !Double.isFinite(lab)
+            || !Double.isFinite(medication)
+            || consultation < 0 || lab < 0 || medication < 0) {
             return false;
         }
         BILLS.add(new BillRecord(patientId, grade, consultation, lab, medication,
                 consultation + lab + medication, "Pending", LocalDateTime.now()));
         saveBills();
         return true;
+    }
+
+    public static List<String> getPatientBills(String patientId) {
+        List<String> matches = new ArrayList<>();
+        if (isBlank(patientId)) {
+            return matches;
+        }
+        for (BillRecord bill : BILLS) {
+            if (bill.patientId.equals(patientId.trim())) {
+                matches.add(bill.toDisplayString());
+            }
+        }
+        return matches;
+    }
+
+    public static List<BillSummary> getPatientBillSummaries(String patientId) {
+        return getPatientBillSummaries(patientId, null);
+    }
+
+    public static List<BillSummary> getPatientBillSummaries(String patientId, String status) {
+        List<BillSummary> matches = new ArrayList<>();
+        if (isBlank(patientId)) {
+            return matches;
+        }
+        for (BillRecord bill : BILLS) {
+            if (bill.patientId.equals(patientId.trim())
+                    && (status == null || status.equals(bill.status))) {
+                matches.add(new BillSummary(bill.createdAt, bill.toDisplayString()));
+            }
+        }
+        return matches;
+    }
+
+    public static boolean payBill(String patientId, LocalDateTime createdAt) {
+        if (isBlank(patientId) || createdAt == null) {
+            return false;
+        }
+        for (BillRecord bill : BILLS) {
+            if (bill.patientId.equals(patientId.trim()) && bill.createdAt.equals(createdAt)
+                    && "Pending".equals(bill.status)) {
+                bill.status = "Paid";
+                saveBills();
+                return true;
+            }
+        }
+        return false;
     }
 
     public static List<String> getWards() {
@@ -142,6 +245,24 @@ public final class ClinicalStore {
                 + "Bills: " + BILLS.size() + "\n"
                 + String.format("Total billed: %.2f\n", total)
                 + "Pending bills: " + pending;
+    }
+
+    public static final class BillSummary {
+        private final LocalDateTime createdAt;
+        private final String displayText;
+
+        private BillSummary(LocalDateTime createdAt, String displayText) {
+            this.createdAt = createdAt;
+            this.displayText = displayText;
+        }
+
+        public LocalDateTime getCreatedAt() {
+            return createdAt;
+        }
+
+        public String getDisplayText() {
+            return displayText;
+        }
     }
 
     private static List<String> load(String fileName) {
@@ -249,7 +370,7 @@ public final class ClinicalStore {
         private final double lab;
         private final double medication;
         private final double total;
-        private final String status;
+        private String status;
         private final LocalDateTime createdAt;
 
         private BillRecord(String patientId, String grade, double consultation,
@@ -263,6 +384,13 @@ public final class ClinicalStore {
             this.total = total;
             this.status = status;
             this.createdAt = createdAt;
+        }
+
+        private String toDisplayString() {
+            return "Grade: " + grade + " | Consultation: " + consultation
+                    + " | Lab: " + lab + " | Medication: " + medication
+                    + " | Total: " + String.format("%.2f", total)
+                    + " | Status: " + status + " | Date: " + createdAt;
         }
     }
 }

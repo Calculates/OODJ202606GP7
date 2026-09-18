@@ -2,6 +2,8 @@ package com.apu.hms.views;
 
 import com.apu.hms.accounts.AccountStore;
 import com.apu.hms.controllers.LoginController;
+import com.apu.hms.models.PermissionMatrix;
+import com.apu.hms.models.SystemModule;
 import com.apu.hms.services.ClinicalStore;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -87,32 +89,122 @@ public class DashboardView extends JPanel {
         switch (role) {
             case "Admin Staff":
                 return new String[]{
+                    "Edit profile",
                     "Manage user accounts",
                     "Create ward or clinic",
                     "Create department or specialty",
                     "Analytical reports"};
             case "Medical Manager":
                 return new String[]{
-                    "Appointment",
+                    "Edit profile",
+                    "View appointment schedule",
                     "Create ward or clinic",
                     "Create department or specialty",
                     "Design assessment type",
+                    "Manage doctor rosters",
                     "Medical grading and billing",
                     "Analytical reports"};
             case "Doctor":
                 return new String[]{
-                    "Appointment",
+                    "Edit profile",
                     "View appointment schedule",
                     "Key in assessment and lab results",
                     "Clinical feedback and prescription",
-                    "Medical grading and billing"};
+                    "Request lab test",
+                    "View lab requests"};
             case "Patient":
                 return new String[]{
-                    "Appointments",
+                    "Edit profile",
+                    "Book appointment",
+                    "View appointments",
+                    "Submit feedback",
                     "View personal medical history",
-                    "View prescriptions"};
+                    "View prescriptions",
+                    "View and pay bills"};
             default:
                 return new String[]{"No functions available"};
+        }
+    }
+
+    private boolean hasPermission(String selectedFunction) {
+        if (selectedFunction.equals("Edit profile")) {
+            return true;
+        }
+        String function = selectedFunction.toLowerCase();
+        SystemModule module;
+        if (function.contains("appointment")) {
+            module = SystemModule.APPOINTMENTS_AND_SCHEDULING;
+        } else if (function.contains("assessment")
+                || function.contains("feedback")
+                || function.contains("history")
+                || function.contains("lab")) {
+            module = SystemModule.PATIENT_HEALTH_RECORDS;
+        } else if (function.contains("prescription")) {
+            module = SystemModule.PRESCRIPTIONS_AND_TREATMENTS;
+        } else if (function.contains("billing") || function.contains("bill")) {
+            module = SystemModule.BILLING_AND_PAYMENTS;
+        } else if (function.contains("report")
+                || function.contains("ward")
+                || function.contains("department")
+                || function.contains("assessment type")
+                || function.contains("roster")) {
+            module = SystemModule.SYSTEM_SETTINGS_AND_REPORTS;
+        } else {
+            module = SystemModule.USER_AND_STAFF_MANAGEMENT;
+        }
+        return PermissionMatrix.canWrite(role, module) || PermissionMatrix.canRead(role, module);
+    }
+
+    private void editProfile() {
+        JTextField userIdField = new JTextField(userId);
+        JPasswordField passwordField = new JPasswordField();
+        JPanel form = createForm(new String[]{"User ID:", "New password (optional):"},
+                userIdField, passwordField);
+        if (showForm(form, "Edit Profile") != JOptionPane.OK_OPTION) {
+            return;
+        }
+        if (AccountStore.updateOwnAccount(userId, userIdField.getText(),
+                new String(passwordField.getPassword()))) {
+            JOptionPane.showMessageDialog(this, "Profile updated. Please log in again.",
+                    "Profile", JOptionPane.INFORMATION_MESSAGE);
+            logout();
+        } else {
+            showError("The user ID is empty or already in use.");
+        }
+    }
+
+    private void submitFeedback() {
+        JTextField feedback = new JTextField();
+        JPanel form = createForm(new String[]{"Feedback:"}, feedback);
+        if (showForm(form, "Submit Feedback") == JOptionPane.OK_OPTION
+                && !ClinicalStore.addPatientFeedback(userId, feedback.getText())) {
+            showError("Feedback cannot be empty.");
+        }
+    }
+
+    private void requestLabTest() {
+        JTextField patient = new JTextField();
+        JTextField request = new JTextField();
+        JPanel form = createForm(new String[]{"Patient ID:", "Lab test or imaging:"}, patient, request);
+        if (showForm(form, "Request Lab Test") == JOptionPane.OK_OPTION
+                && !ClinicalStore.addLabRequest(patient.getText(), userId, request.getText())) {
+            showError("Enter a patient ID and lab request.");
+        }
+    }
+
+    private void manageDoctorRosters() {
+        JComboBox<String> doctor = new JComboBox<>();
+        for (AccountStore.AccountRecord account : AccountStore.getAccountsByRole("Doctor")) {
+            doctor.addItem(account.getUserId());
+        }
+        JTextField shift = new JTextField();
+        JPanel form = createForm(new String[]{"Doctor:", "Shift:"}, doctor, shift);
+        if (showForm(form, "Manage Doctor Rosters") == JOptionPane.OK_OPTION
+                && !ClinicalStore.addDoctorRoster((String) doctor.getSelectedItem(), shift.getText())) {
+            showError("Enter a unique doctor shift.");
+        }
+        if (!ClinicalStore.getDoctorRosters().isEmpty()) {
+            showRecords("Doctor Rosters", ClinicalStore.getDoctorRosters());
         }
     }
 
@@ -123,7 +215,11 @@ public class DashboardView extends JPanel {
     }
 
     private void openSelectedFunction(String selectedFunction) {
-        if (selectedFunction.equals("Manage user accounts")) {
+        if (!hasPermission(selectedFunction)) {
+            showError("You do not have permission to use this function.");
+        } else if (selectedFunction.equals("Edit profile")) {
+            editProfile();
+        } else if (selectedFunction.equals("Manage user accounts")) {
             manageUserAccounts();
         } else if (selectedFunction.equals("Create ward or clinic")) {
             createWard();
@@ -139,6 +235,18 @@ public class DashboardView extends JPanel {
             createBill();
         } else if (selectedFunction.equals("Analytical reports")) {
             showReport();
+        } else if (selectedFunction.equals("Book appointment")) {
+            bookAppointment();
+        } else if (selectedFunction.equals("View appointments")) {
+            viewPatientAppointments();
+        } else if (selectedFunction.equals("Submit feedback")) {
+            submitFeedback();
+        } else if (selectedFunction.equals("Request lab test")) {
+            requestLabTest();
+        } else if (selectedFunction.equals("View lab requests")) {
+            showRecords("Lab Requests", ClinicalStore.getLabRequests(userId));
+        } else if (selectedFunction.equals("Manage doctor rosters")) {
+            manageDoctorRosters();
         } else if (selectedFunction.contains("Appointment")) {
             if (selectedFunction.equals("View appointment schedule")) {
                 viewDoctorSchedule();
@@ -149,6 +257,59 @@ public class DashboardView extends JPanel {
             medicalHistory();
         } else if (selectedFunction.equals("View prescriptions")) {
             showRecords("Prescriptions", ClinicalStore.getPatientPrescriptions(userId));
+        } else if (selectedFunction.equals("View and pay bills")) {
+            viewAndPayBills();
+        }
+    }
+
+    private void viewAndPayBills() {
+        Object[] categories = {"Unpaid bills", "Paid bills"};
+        int category = JOptionPane.showOptionDialog(this,
+                "Choose which bills to view.", "Patient Bills", JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE, null, categories, categories[0]);
+        if (category < 0) {
+            return;
+        }
+
+        String status = category == 0 ? "Pending" : "Paid";
+        java.util.List<ClinicalStore.BillSummary> billSummaries =
+                ClinicalStore.getPatientBillSummaries(userId, status);
+        if (billSummaries.isEmpty()) {
+            showRecords(category == 0 ? "Unpaid Bills" : "Paid Bills",
+                    java.util.Collections.emptyList());
+            return;
+        }
+
+        if (category == 1) {
+            java.util.List<String> paidBills = new java.util.ArrayList<>();
+            for (ClinicalStore.BillSummary summary : billSummaries) {
+                paidBills.add(summary.getDisplayText());
+            }
+            showRecords("Paid Bills", paidBills);
+            return;
+        }
+
+        String[] options = new String[billSummaries.size()];
+        for (int index = 0; index < billSummaries.size(); index++) {
+            options[index] = billSummaries.get(index).getDisplayText();
+        }
+
+        String selected = (String) JOptionPane.showInputDialog(this,
+                "Select an unpaid bill to pay.", "Unpaid Bills", JOptionPane.PLAIN_MESSAGE,
+                null, options, options[0]);
+        if (selected == null) {
+            return;
+        }
+        for (ClinicalStore.BillSummary summary : billSummaries) {
+            if (summary.getDisplayText().equals(selected)) {
+                if (ClinicalStore.payBill(userId, summary.getCreatedAt())) {
+                    JOptionPane.showMessageDialog(this, "Bill paid successfully.",
+                            "Payment", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    showError("This bill has already been paid.");
+                }
+                return;
+            }
         }
     }
 
@@ -156,6 +317,10 @@ public class DashboardView extends JPanel {
         JComboBox<String> doctorSelector = new JComboBox<>();
         for (AccountStore.AccountRecord doctor : AccountStore.getAccountsByRole("Doctor")) {
             doctorSelector.addItem(doctor.getUserId());
+        }
+        if (doctorSelector.getItemCount() == 0) {
+            showError("No doctors are available for appointments.");
+            return;
         }
         JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
         dateSpinner.setEditor(new JSpinner.DateEditor(dateSpinner, "dd/MM/yyyy"));
@@ -177,14 +342,80 @@ public class DashboardView extends JPanel {
             LocalTime time = selectedTime.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalTime();
             LocalDateTime appointmentTime = LocalDateTime.of(date, time.withSecond(0).withNano(0));
             String doctorId = (String) doctorSelector.getSelectedItem();
-            AccountStore.addAppointment(userId, doctorId, appointmentTime);
+            if (AccountStore.addAppointment(userId, doctorId, appointmentTime)) {
+                JOptionPane.showMessageDialog(this, "Appointment booked successfully.",
+                        "Appointment", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                showError("That doctor is already booked at the selected time.");
+            }
+        }
+    }
+
+    private void viewPatientAppointments() {
+        java.util.List<AccountStore.AppointmentRecord> appointments =
+                AccountStore.getAppointmentsForPatient(userId);
+        if (appointments.isEmpty()) {
+            showRecords("Appointments", java.util.Collections.emptyList());
+            return;
+        }
+
+        String[] options = new String[appointments.size()];
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        for (int index = 0; index < appointments.size(); index++) {
+            AccountStore.AppointmentRecord appointment = appointments.get(index);
+            options[index] = appointment.getDoctorId() + " | "
+                    + appointment.getDateTime().format(formatter);
+        }
+
+        String selected = (String) JOptionPane.showInputDialog(this,
+            "Select an appointment to reschedule or cancel.",
+                "Appointments", JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (selected == null) {
+            return;
+        }
+        for (int index = 0; index < options.length; index++) {
+            if (options[index].equals(selected)) {
+                Object[] actions = {"Reschedule", "Cancel appointment"};
+                int action = JOptionPane.showOptionDialog(this, "Choose an action.",
+                        "Appointments", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+                        null, actions, actions[0]);
+                if (action == 0) {
+                    rescheduleAppointment(appointments.get(index));
+                } else if (action == 1 && AccountStore.removeAppointment(userId,
+                        appointments.get(index).getDateTime())) {
+                    JOptionPane.showMessageDialog(this, "Appointment cancelled.",
+                            "Appointments", JOptionPane.INFORMATION_MESSAGE);
+                }
+                return;
+            }
+        }
+    }
+
+    private void rescheduleAppointment(AccountStore.AppointmentRecord appointment) {
+        JSpinner date = new JSpinner(new SpinnerDateModel());
+        date.setEditor(new JSpinner.DateEditor(date, "dd/MM/yyyy HH:mm"));
+        if (JOptionPane.showConfirmDialog(this, date, "Reschedule Appointment",
+                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) {
+            return;
+        }
+        java.util.Date selected = (java.util.Date) date.getValue();
+        LocalDateTime newDateTime = selected.toInstant().atZone(java.time.ZoneId.systemDefault())
+                .toLocalDateTime().withSecond(0).withNano(0);
+        if (AccountStore.rescheduleAppointment(userId, appointment.getDateTime(), newDateTime)) {
+            JOptionPane.showMessageDialog(this, "Appointment rescheduled.",
+                    "Appointments", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            showError("That time is unavailable.");
         }
     }
 
     private void viewDoctorSchedule() {
+        java.util.List<AccountStore.AppointmentRecord> appointments = "Medical Manager".equals(role)
+            ? AccountStore.getAllAppointments()
+            : AccountStore.getAppointmentsForDoctor(userId);
         StringBuilder schedule = new StringBuilder();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        for (AccountStore.AppointmentRecord appointment : AccountStore.getAppointmentsForDoctor(userId)) {
+        for (AccountStore.AppointmentRecord appointment : appointments) {
             schedule.append("Patient: ").append(appointment.getPatientId())
                     .append(" | ").append(appointment.getDateTime().format(formatter)).append('\n');
         }
@@ -316,7 +547,7 @@ public class DashboardView extends JPanel {
                 "Analytical Reports", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private JPanel createForm(String[] labels, JTextField... fields) {
+    private JPanel createForm(String[] labels, JComponent... fields) {
         JPanel form = new JPanel(new GridLayout(labels.length, 2, 8, 8));
         for (int index = 0; index < labels.length; index++) {
             form.add(new JLabel(labels[index]));

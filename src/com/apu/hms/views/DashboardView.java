@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-public class DashboardView extends JPanel {
+public class DashboardView extends RoleBackgroundPanel {
     private static final long serialVersionUID = 1L;
 
     private final JFrame mainFrame;
@@ -24,6 +24,7 @@ public class DashboardView extends JPanel {
     private final LoginController loginController;
 
     public DashboardView(JFrame mainFrame, String userId, String role) {
+        super(role);
         this.mainFrame = mainFrame;
         this.userId = userId;
         this.role = role;
@@ -34,8 +35,6 @@ public class DashboardView extends JPanel {
     private void initializeComponents() {
         setLayout(new BorderLayout(12, 12));
         setBorder(BorderFactory.createEmptyBorder(18, 24, 18, 24));
-        setBackground(new Color(240, 240, 240));
-
         JLabel titleLabel = new JLabel("APU Medical Centre - Main Dashboard", SwingConstants.CENTER);
         titleLabel.setOpaque(true);
         titleLabel.setBackground(new Color(0, 102, 204));
@@ -45,7 +44,7 @@ public class DashboardView extends JPanel {
         add(titleLabel, BorderLayout.NORTH);
 
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
-        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setOpaque(false);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
 
         JLabel welcomeLabel = new JLabel("Welcome " + role + " " + userId);
@@ -58,6 +57,10 @@ public class DashboardView extends JPanel {
         }
 
         JList<String> functionList = new JList<>(functionModel);
+        functionList.setOpaque(false);
+        functionList.setBackground(new Color(0, 0, 0, 0));
+        functionList.setSelectionBackground(new Color(255, 255, 255, 45));
+        functionList.setSelectionForeground(Color.BLACK);
         functionList.setFont(new Font("Arial", Font.PLAIN, 14));
         functionList.setFixedCellHeight(34);
         functionList.setBorder(BorderFactory.createEmptyBorder());
@@ -72,11 +75,14 @@ public class DashboardView extends JPanel {
                 }
             }
         });
-        contentPanel.add(new JScrollPane(functionList), BorderLayout.CENTER);
+        contentPanel.add(functionList, BorderLayout.CENTER);
 
         add(contentPanel, BorderLayout.CENTER);
 
         JButton logoutButton = new JButton("Logout");
+        logoutButton.setOpaque(false);
+        logoutButton.setContentAreaFilled(false);
+        logoutButton.setBorderPainted(false);
         logoutButton.setForeground(Color.BLACK);
         logoutButton.addActionListener(event -> logout());
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

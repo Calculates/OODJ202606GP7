@@ -235,16 +235,48 @@ public final class ClinicalStore {
                 pending++;
             }
         }
-        return "Analytical Report\n\n"
-                + "Wards/clinics: " + WARDS.size() + "\n"
-                + "Departments/specialties: " + DEPARTMENTS.size() + "\n"
-                + "Assessment types: " + ASSESSMENT_TYPES.size() + "\n"
-                + "Medical assessments: " + ASSESSMENTS.size() + "\n"
-                + "Clinical feedback records: " + FEEDBACK.size() + "\n"
-                + "Prescriptions: " + PRESCRIPTIONS.size() + "\n"
-                + "Bills: " + BILLS.size() + "\n"
-                + String.format("Total billed: %.2f\n", total)
-                + "Pending bills: " + pending;
+        StringBuilder report = new StringBuilder("Analytical Report\n\n");
+        appendSection(report, "Wards/clinics", WARDS);
+        appendSection(report, "Departments/specialties", DEPARTMENTS);
+        appendSection(report, "Assessment types", ASSESSMENT_TYPES);
+        appendSection(report, "Medical assessments", getClinicalRecordsForReport(ASSESSMENTS));
+        appendSection(report, "Clinical feedback records", getClinicalRecordsForReport(FEEDBACK));
+        appendSection(report, "Prescriptions", getClinicalRecordsForReport(PRESCRIPTIONS));
+        appendSection(report, "Lab requests", LAB_REQUESTS);
+        appendSection(report, "Doctor rosters", DOCTOR_ROSTERS);
+        report.append("Bills: ").append(BILLS.size()).append("\n");
+        if (BILLS.isEmpty()) {
+            report.append("(none)\n");
+        } else {
+            for (BillRecord bill : BILLS) {
+                report.append(bill.patientId).append(" | ")
+                        .append(bill.toDisplayString()).append('\n');
+            }
+        }
+        report.append("\nBilling summary\n")
+                .append("Total billed: RM ").append(String.format("%.2f", total)).append('\n')
+                .append("Pending bills: ").append(pending);
+        return report.toString();
+    }
+
+    private static List<String> getClinicalRecordsForReport(List<ClinicalRecord> records) {
+        List<String> values = new ArrayList<>();
+        for (ClinicalRecord record : records) {
+            values.add(record.toDisplayString());
+        }
+        return values;
+    }
+
+    private static void appendSection(StringBuilder report, String title, List<String> values) {
+        report.append(title).append(": ").append(values.size()).append("\n");
+        if (values.isEmpty()) {
+            report.append("(none)\n");
+        } else {
+            for (String value : values) {
+                report.append(value).append('\n');
+            }
+        }
+        report.append('\n');
     }
 
     public static final class BillSummary {
@@ -387,9 +419,10 @@ public final class ClinicalStore {
         }
 
         private String toDisplayString() {
-            return "Grade: " + grade + " | Consultation: " + consultation
-                    + " | Lab: " + lab + " | Medication: " + medication
-                    + " | Total: " + String.format("%.2f", total)
+            return "Grade: " + grade + " | Consultation: RM " + String.format("%.2f", consultation)
+                + " | Lab: RM " + String.format("%.2f", lab)
+                + " | Medication: RM " + String.format("%.2f", medication)
+                + " | Total: RM " + String.format("%.2f", total)
                     + " | Status: " + status + " | Date: " + createdAt;
         }
     }

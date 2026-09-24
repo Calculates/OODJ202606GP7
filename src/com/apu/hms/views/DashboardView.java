@@ -247,12 +247,10 @@ public class DashboardView extends JPanel {
             showRecords("Lab Requests", ClinicalStore.getLabRequests(userId));
         } else if (selectedFunction.equals("Manage doctor rosters")) {
             manageDoctorRosters();
+        } else if (selectedFunction.equals("View appointment schedule")) {
+            viewDoctorSchedule();
         } else if (selectedFunction.contains("Appointment")) {
-            if (selectedFunction.equals("View appointment schedule")) {
-                viewDoctorSchedule();
-            } else {
-                bookAppointment();
-            }
+            bookAppointment();
         } else if (selectedFunction.equals("View personal medical history")) {
             medicalHistory();
         } else if (selectedFunction.equals("View prescriptions")) {
@@ -410,16 +408,33 @@ public class DashboardView extends JPanel {
     }
 
     private void viewDoctorSchedule() {
-        java.util.List<AccountStore.AppointmentRecord> appointments = "Medical Manager".equals(role)
-            ? AccountStore.getAllAppointments()
-            : AccountStore.getAppointmentsForDoctor(userId);
+        String doctorId = userId;
+        if ("Medical Manager".equals(role)) {
+            JComboBox<String> doctorSelector = new JComboBox<>();
+            for (AccountStore.AccountRecord doctor : AccountStore.getAccountsByRole("Doctor")) {
+                doctorSelector.addItem(doctor.getUserId());
+            }
+            if (doctorSelector.getItemCount() == 0) {
+                showError("No doctors are available.");
+                return;
+            }
+            JPanel form = createForm(new String[]{"Doctor:"}, doctorSelector);
+            if (showForm(form, "Select Doctor Schedule") != JOptionPane.OK_OPTION) {
+                return;
+            }
+            doctorId = (String) doctorSelector.getSelectedItem();
+        }
+
+        java.util.List<AccountStore.AppointmentRecord> appointments =
+                AccountStore.getAppointmentsForDoctor(doctorId);
         StringBuilder schedule = new StringBuilder();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        schedule.append("Doctor: ").append(doctorId).append('\n');
         for (AccountStore.AppointmentRecord appointment : appointments) {
             schedule.append("Patient: ").append(appointment.getPatientId())
                     .append(" | ").append(appointment.getDateTime().format(formatter)).append('\n');
         }
-        if (schedule.length() == 0) {
+        if (appointments.isEmpty()) {
             schedule.append("No appointments scheduled.");
         }
         JOptionPane.showMessageDialog(this, schedule.toString(),
@@ -519,11 +534,11 @@ public class DashboardView extends JPanel {
         form.add(patient);
         form.add(new JLabel("Medical grade:"));
         form.add(grade);
-        form.add(new JLabel("Consultation cost:"));
+        form.add(new JLabel("Consultation cost (RM):"));
         form.add(consultation);
-        form.add(new JLabel("Lab cost:"));
+        form.add(new JLabel("Lab cost (RM):"));
         form.add(lab);
-        form.add(new JLabel("Medication cost:"));
+        form.add(new JLabel("Medication cost (RM):"));
         form.add(medication);
         if (showForm(form, "Medical Grading and Billing") == JOptionPane.OK_OPTION) {
             try {

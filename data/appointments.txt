@@ -1,0 +1,18 @@
+Hugo|Dr.J|2026-10-12T09:00
+Hugo|doctor|2026-10-13T10:30
+xxlin|doctor|2026-10-15T11:15
+P001|doctor|2026-10-16T13:45
+Jiyeon|Dr. John|2026-10-18T14:00
+patient|Dr.J|2026-10-19T09:30
+xxlin|Dr. John|2026-10-20T11:00
+P001|Dr.J|2026-10-22T15:30
+Hugo|Dr. John|2026-10-23T14:15
+patient|Dr. John|2026-10-25T16:45
+Jiyeon|doctor|2026-10-26T10:00
+xxlin|Dr.J|2026-10-27T15:00
+patient|doctor|2026-10-29T11:30
+P001|Dr. John|2026-10-30T16:00
+Hugo|Dr.J|2026-11-02T09:15
+Jiyeon|Dr.J|2026-11-04T14:30
+xxlin|doctor|2026-11-06T10:45
+patient|Dr. John|2026-11-09T13:00

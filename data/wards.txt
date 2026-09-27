@@ -1,0 +1,10 @@
+APU|Inpatient|20
+ICU|Hospital|10
+CCU|Critical Care|12
+Pediatric Ward|Inpatient|18
+Surgical Ward|Post-Operative|24
+Maternity Ward|Inpatient|16
+Emergency Ward|Acute Care|15
+Isolation Ward|Infectious Disease|8
+Orthopedic Ward|Rehabilitation|20
+Day Surgery Unit|Ambulatory Care|14

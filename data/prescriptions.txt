@@ -1,0 +1,8 @@
+P001|doctor|Prescription|Paracetamol 500mg - 3 times daily after meals.||2026-09-24T03:41:05.892614
+patient|Dr.J|Prescription|Amoxicillin 500mg - 1 capsule every 8 hours for 7 days.||2026-09-24T10:35:12.441902
+Hugo|doctor|Prescription|Ibuprofen 400mg - 1 tablet as needed for pain, maximum 3 times daily.||2026-09-24T11:50:20.108273
+xxlin|doctor|Prescription|Metformin 500mg - 1 tablet twice daily with meals.||2026-09-24T15:15:45.302194
+Jiyeon|Dr. John|Prescription|Amlodipine 5mg - 1 tablet daily in the morning.||2026-09-24T16:30:10.778451
+P001|Dr. John|Prescription|Cetirizine 10mg - 1 tablet daily at bedtime.||2026-09-24T18:20:05.129840
+Hugo|Dr.J|Prescription|Omeprazole 20mg - 1 capsule once daily before breakfast.||2026-09-24T19:05:33.654321
+patient|doctor|Prescription|Salbutamol Inhaler 100mcg - 2 puffs as needed for shortness of breath.||2026-09-24T20:10:18.910283

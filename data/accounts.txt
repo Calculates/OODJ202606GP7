@@ -1,0 +1,11 @@
+Admin Staff|admin|admin123
+Doctor|doctor|doctor123
+Doctor|Dr.J|drj123
+Doctor|Dr. John|drj00
+Medical Manager|manager|manager123
+Medical Manager|Tim|T123
+Patient|patient|patient123
+Patient|P001|pw1234
+Patient|Hugo|hugo123
+Patient|xxlin|lin123
+Patient|Jiyeon|jy456

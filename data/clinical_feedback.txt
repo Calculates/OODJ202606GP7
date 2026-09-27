@@ -1,0 +1,7 @@
+P001|P001|Feedback|.........||2026-09-24T02:05:48.664873
+P001|doctor|Feedback|Mild fever and seasonal flu symptoms, adequate rest advised.||2026-09-24T03:41:05.890891
+patient|doctor|Feedback|Blood pressure remains stable, continue current dietary regimen.||2026-09-24T10:30:15.112045
+Hugo|Dr.J|Feedback|Incision healing satisfactorily with no erythema or discharge noted.||2026-09-24T11:45:22.304912
+xxlin|doctor|Feedback|Fasting glucose shows mild elevation, physical exercise recommended.||2026-09-24T15:10:08.551820
+Jiyeon|Dr. John|Feedback|Normal sinus rhythm observed, follow-up scheduled in two weeks.||2026-09-24T16:25:40.890123
+P001|doctor|Feedback|Prescribed oral antibiotics completed, respiratory symptoms resolved.||2026-09-24T18:15:30.401928

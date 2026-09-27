@@ -1,0 +1,16 @@
+Abdominal Ultrasound|Non-invasive diagnostic sonography for abdominal and pelvic organs
+Audiometric Evaluation|Standard pure-tone audiometry screening for hearing threshold
+Blood Glucose Monitoring|Screening test for diabetes mellitus and glycemic control
+Blood Pressure Check|Standard cardiovascular screening test
+Bone Mineral Densitometry|Dual-energy X-ray absorptiometry for osteoporosis evaluation
+Chest Radiography|Standard radiological examination for pulmonary and thoracic conditions
+Clinical Examination|Comprehensive physical examination and vital signs assessment
+ECG Monitoring|Resting electrocardiogram recording for cardiac rhythm evaluation
+Full Blood Count|Routine haematological evaluation of red cells, white cells, and platelets
+Lipid Profile Screening|Blood assessment for total cholesterol, triglycerides, and lipoprotein levels
+Liver Function Test|Serum biochemical screening for hepatic enzyme and protein levels
+Pulmonary Function Test|Basic respiratory spirometry evaluation for airway obstruction
+Renal Function Test|Assessment of serum urea, creatinine, and glomerular filtration rate
+Thyroid Function Screening|Measurement of thyroid stimulating hormone and free thyroxine levels
+Urinalysis Screening|Biochemical and microscopic evaluation of urine parameters
+Visual Acuity Examination|Standardised clinical assessment of distance and near visual clarity

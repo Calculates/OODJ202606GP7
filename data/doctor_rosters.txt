@@ -1,0 +1,6 @@
+Dr.J|Morning 8-11am
+Dr. John|Morning 8-12pm
+doctor|Morning 9am-1pm
+Dr. John|Afternoon 1-5pm
+doctor|Afternoon 2-6pm
+Dr.J|Night Shift 10pm-6am

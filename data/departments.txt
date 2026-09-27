@@ -1,0 +1,11 @@
+Cardiology|Interventional Cardiology
+Emergency|Trauma Care
+Neurology|Stroke Care
+Surgery|Orthopedics
+Pediatrics|Neonatology
+Oncology|Medical Oncology
+Dermatology|Clinical Dermatology
+Radiology|Diagnostic Imaging
+Psychiatry|General Psychiatry
+Ophthalmology|Retinal Diseases
+

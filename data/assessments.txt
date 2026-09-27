@@ -1,0 +1,7 @@
+P001|doctor|General Physical Examination|Normal vital signs with mild throat inflammation|Negative for influenza A and B|2026-09-24T03:53:56.469452
+patient|doctor|Blood Pressure Check|Elevated blood pressure observed|Stage 1 Hypertension (138/88 mmHg)|2026-09-24T10:15:00
+Hugo|Dr.J|Clinical Examination|Mild persistent dry cough without wheezing|Chest clear, normal respiratory rate|2026-09-24T11:00:00
+xxlin|doctor|Blood Glucose Monitoring|Fasting blood sugar evaluated|Slightly elevated (115 mg/dL)|2026-09-24T14:30:00
+Jiyeon|Dr. John|ECG Monitoring|Patient reported occasional palpitations|Normal sinus rhythm, no arrhythmia detected|2026-09-24T15:45:00
+P001|Dr.J|Lipid Profile Screening|Routine cardiovascular wellness screening|Borderline total cholesterol (210 mg/dL)|2026-09-24T16:20:00
+patient|Dr. John|Pulmonary Function Test|Follow-up assessment for seasonal allergies|Normal FEV1/FVC ratio|2026-09-24T17:00:00
